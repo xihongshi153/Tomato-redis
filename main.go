@@ -55,15 +55,15 @@ func main() {
 			switch {
 			case cmd == "get":
 				var key string
-				fmt.Println("input key")
+				fmt.Println("get:input key")
 				fmt.Scanln(&key)
 				fmt.Println(c.Get(key))
 			case cmd == "put":
 				var key string
 				var value string
-				fmt.Println("input key")
+				fmt.Println("put:input key")
 				fmt.Scanln(&key)
-				fmt.Println("input value")
+				fmt.Println("put:input value")
 				fmt.Scanln(&value)
 				c.Put(key, value)
 			case cmd == "":
