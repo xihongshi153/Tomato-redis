@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"tomato-redis/myrpc"
+	"tomato-redis/raft"
 )
 
 type Clerk struct {
@@ -25,9 +26,9 @@ func nrand() int64 {
 }
 
 // 创建 clerk clerk 就是client使用的
-func MakeClerk(servers []*myrpc.ClientEnd) *Clerk {
+func MakeClerk(servers []string) *Clerk {
 	ck := new(Clerk)
-	ck.servers = servers
+	ck.servers = raft.Makepeers(servers)
 	ck.ClerkIndex = int(nrand()) % 10000000
 	ck.RequestIndex = 0
 	ck.leaderIndex = -1
@@ -91,9 +92,7 @@ func (ck *Clerk) Get(key string) string {
 		}
 		DPrintf("clerk.Index=%d Repeat Get key %v",
 			ck.ClerkIndex, key)
-
 	}
-
 	//return ""
 }
 

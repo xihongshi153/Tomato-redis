@@ -2,6 +2,7 @@ package kvraft
 
 import (
 	"bytes"
+	"net/rpc"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -90,6 +91,7 @@ func StartKVServer(servers []string, me int, persister *raft.Persister, maxrafts
 	kv.mu.Lock()
 	kv.me = me
 	kv.maxraftstate = maxraftstate
+	registerSelf(kv, servers[me])
 	// You may need initialization code here.
 	kv.stateMap = make(map[string]string)
 	kv.applyCh = make(chan raft.ApplyMsg, 1)
@@ -100,18 +102,27 @@ func StartKVServer(servers []string, me int, persister *raft.Persister, maxrafts
 		kv.ingestSnap(persister.ReadSnapshot())
 	}
 	kv.rf = raft.Make(servers, me, persister, kv.applyCh)
-
 	// DPrintf("kv.me=%d kv.stateMap: %v\n", kv.me, kv.stateMap)
 	// DPrintf("kv.me=%d kv.LastRequestIndex: %v\n", kv.me, kv.LastRequestIndex)
 	go kv.applier()
 	kv.mu.Unlock()
 	// You may need initialization code here.
-
 	return kv
 }
 
+func registerSelf(kv *KVServer, ipAndPort string) {
+	rpc.Register(kv)
+	DPrintf("kv.me=%d  registerself %v", kv.me, ipAndPort)
+	// port := strings.Split(ipAndPort, ":")
+	// l, e := net.Listen("tcp", ":"+port[1])
+	// if e != nil {
+	// 	log.Fatal("listen err:", e)
+	// }
+	// go http.Serve(l, nil)
+}
+
 // KvServer 实现Get
-func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
+func (kv *KVServer) Get(args *GetArgs, reply *GetReply) error {
 	op := Op{
 		OpType: GetType,
 		Args:   *args,
@@ -119,7 +130,7 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 	index, _, isLeader := kv.rf.Start(op)
 	if !isLeader {
 		reply.Err = ErrWrongLeader
-		return
+		return nil
 	}
 	kv.mu.Lock()
 	DPrintf("KVServer.me=%d leader Get args %v  index %v", kv.me, args, index)
@@ -145,10 +156,11 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 		delete(kv.GetWaitChan, index)
 		kv.mu.Unlock()
 	}
+	return nil
 }
 
 // kvServer 实现PutAppend
-func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
+func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) error {
 	op := Op{
 		OpType: AppendPutType,
 		Args:   *args,
@@ -156,7 +168,7 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 	index, _, isLeader := kv.rf.Start(op)
 	if !isLeader {
 		reply.Err = ErrWrongLeader
-		return
+		return nil
 	}
 	kv.mu.Lock()
 	DPrintf("KVServer.me=%d leader PutAppend args %v index %v", kv.me, args, index)
@@ -178,6 +190,7 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 		kv.mu.Unlock()
 		DPrintf("KVServer.me=%d third index %v time %v args %v", kv.me, index, time.Now(), args)
 	}
+	return nil
 }
 
 // 分发 applyCh中的信息

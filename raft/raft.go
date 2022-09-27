@@ -305,7 +305,9 @@ func Make(addressAndPortArray []string, me int,
 	persister *Persister, applyCh chan ApplyMsg) *Raft {
 	rf := &Raft{}
 	rf.me = me
-	peers := makepeers(rf, me, addressAndPortArray)
+	registerSelf(rf, addressAndPortArray[me])
+	time.Sleep(5 * time.Second)
+	peers := Makepeers(addressAndPortArray)
 	rf.peers = peers
 	// Your initialization code here (2A, 2B, 2C).
 	DPrintf("raft.me=%d Make raft peer ", me)
@@ -342,22 +344,32 @@ func Make(addressAndPortArray []string, me int,
 	rf.mu.Unlock()
 	return rf
 }
-func makepeers(r *Raft, peerId int, addressAndPortArray []string) []*myrpc.ClientEnd {
+
+// 在rpc 中注册自己
+func registerSelf(r *Raft, ipAndPort string) {
 	rpc.Register(r)
 	rpc.HandleHTTP()
-	port := strings.Split(addressAndPortArray[peerId], ":")
+	DPrintf("raft.me=%d  registerself %v", r.me, ipAndPort)
+	port := strings.Split(ipAndPort, ":")
 	l, e := net.Listen("tcp", ":"+port[1])
 	if e != nil {
 		log.Fatal("listen err:", e)
 	}
 	go http.Serve(l, nil)
-	time.Sleep(10 * time.Second)
+}
+
+//
+func Makepeers(addressAndPortArray []string) []*myrpc.ClientEnd {
 	// 填充配置 建立连接
+	DPrintf("make peers %v", addressAndPortArray)
 	clientEnd := make([]*myrpc.ClientEnd, len(addressAndPortArray))
 	for i := 0; i < len(addressAndPortArray); i++ {
 		c, err := rpc.DialHTTP("tcp", addressAndPortArray[i])
 		if err != nil {
 			log.Fatal("main rpc.DialHTTP err", err)
+		}
+		if c == nil {
+			log.Fatalf("connect fail %v ", addressAndPortArray[i])
 		}
 		clientEnd[i] = &myrpc.ClientEnd{
 			Client: c,
