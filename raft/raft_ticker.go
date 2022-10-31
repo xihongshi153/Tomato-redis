@@ -153,7 +153,7 @@ func (rf *Raft) Commit(once bool) {
 			return
 		}
 		rf.mu.Unlock()
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 	}
 	DPrintf("raft.me=%d Commit over ", rf.me)
 }
@@ -188,7 +188,7 @@ func (rf *Raft) apply() {
 			rf.persist()
 			rf.mu.Unlock()
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 	}
 	DPrintf("raft.me=%d apply over ", rf.me)
 }

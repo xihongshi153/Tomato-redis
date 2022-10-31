@@ -176,10 +176,8 @@ func (rf *Raft) CondInstallSnapshot(lastIncludedTerm int, lastIncludedIndex int,
 // that index. Raft should now trim its log as much as possible.
 func (rf *Raft) Snapshot(index int, snapshot []byte) {
 	// Your code here (2D).
-
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-
 	DPrintf("raft.me=%d state machine Snapshot himself  index %d", rf.me, index)
 	if rf.LastSsIndex >= index || index > rf.CommitIndex {
 		return
@@ -187,11 +185,9 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 	l := make([]Log, 0)
 	l = append(l, Log{})
 	l = append(l, rf.Log[index-rf.LastSsIndex+1:len(rf.Log)]...)
-
 	rf.LastSsTerm = rf.getTerm(index)
 	rf.LastSsIndex = index
 	rf.Log = l
-
 	if index > rf.CommitIndex {
 		rf.CommitIndex = index
 	}

@@ -67,7 +67,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		rf.me, rf.LastSsIndex, rf.CurrentTerm, args.Me, args, rf.Log)
 	rf.now = time.Now()
 	reply.Term = rf.CurrentTerm
-
 	if args.CurrentTerm == rf.CurrentTerm && rf.Raftstate == 1 {
 		DPrintf("raft.me=%d refuse follower's append RPC", rf.me)
 		return nil
@@ -80,7 +79,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		return nil
 	}
 	// if args.CurrentTerm 更大 更新Term,将状态设置成follower
-
 	if args.CurrentTerm > rf.CurrentTerm {
 		DPrintf("raft.me=%d changeTerm to %d", rf.me, rf.CurrentTerm)
 		rf.CurrentTerm = args.CurrentTerm
@@ -225,7 +223,6 @@ func (rf *Raft) sendAppendEntries(server int, args AppendEntriesArgs) {
 			if reply.XTerm == -1 {
 				rf.NextIndex[server] = reply.XLen
 			} else {
-
 				if rf.getTerm(reply.XIndex) == reply.XTerm {
 					rf.NextIndex[server] = reply.XIndex + 1
 				} else {

@@ -4,6 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 	"tomato-redis/kvraft"
@@ -20,9 +24,7 @@ func Init() {
 	flag.IntVar(&peerId, "id", -1, "peer Id,clientEnd index,from 0")
 	flag.StringVar(&peerName, "name", "", "peer name")
 	flag.StringVar(&addressAndPort, "port", "", "all address and port")
-
 }
-
 func main() {
 	Init()
 	flag.Parse()
@@ -31,13 +33,26 @@ func main() {
 		log.Fatal("args nil")
 		return
 	}
+
 	addressAndPortArray := strings.Split(addressAndPort, " ")
 	log.Printf("kind: %v name: %v id: %v addressAndProt: %v ", kind, peerName, peerId, addressAndPortArray[peerId])
+
 	// 构建clientEnd
 	//raft.Make(addressAndPortArray, peerId, raft.MakePersister(), make(chan raft.ApplyMsg))
 	// 构建raftkv
+
 	switch kind {
 	case "server":
+		go func() {
+			// 启动一个 http server，注意 pprof 相关的 handler 已经自动注册过了
+			portstring := strings.Split(strings.Split(addressAndPort, " ")[peerId], ":")[1]
+			portNum, _ := strconv.Atoi(portstring)
+			fmt.Println("pprof port", strconv.Itoa(portNum+1000))
+			if err := http.ListenAndServe(":"+strconv.Itoa(portNum+1000), nil); err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		}()
 		kvraft.StartKVServer(addressAndPortArray, peerId, raft.MakePersister(), 10000)
 		for {
 			time.Sleep(60 * time.Second)

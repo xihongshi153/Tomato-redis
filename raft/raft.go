@@ -271,18 +271,14 @@ func (rf *Raft) readPersist(data []byte) {
 // should call killed() to check whether it should stop.
 //
 func (rf *Raft) Kill() {
-
 	atomic.StoreInt32(&rf.Raftstate, 3)
 	atomic.StoreInt32(&rf.dead, 1)
 	DPrintf("raft.me=%d kill self", rf.me)
-
 	// Your code here, if desired.
 }
 
 func (rf *Raft) killed() bool {
-
 	z := atomic.LoadInt32(&rf.dead)
-
 	return z == 1
 }
 func (rf *Raft) IsLeader() bool {
@@ -366,7 +362,7 @@ func Makepeers(addressAndPortArray []string) []*myrpc.ClientEnd {
 	for i := 0; i < len(addressAndPortArray); i++ {
 		c, err := rpc.DialHTTP("tcp", addressAndPortArray[i])
 		if err != nil {
-			log.Fatal("main rpc.DialHTTP err", err)
+			log.Fatal("main rpc.DialHTTP err ", err)
 		}
 		if c == nil {
 			log.Fatalf("connect fail %v ", addressAndPortArray[i])
