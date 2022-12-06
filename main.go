@@ -28,8 +28,12 @@ func Init() {
 func main() {
 	Init()
 	flag.Parse()
-
+	time.Sleep(10 * time.Second)
 	if peerId == -1 || peerName == "" || addressAndPort == "" || kind == "" {
+		fmt.Println(peerId)
+		fmt.Println(peerName)
+		fmt.Println(addressAndPort)
+
 		log.Fatal("args nil")
 		return
 	}
