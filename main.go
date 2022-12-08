@@ -4,10 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
-	_ "net/http/pprof"
-	"os"
-	"strconv"
+
+	//	_ "net/http/pprof"
 	"strings"
 	"time"
 	"tomato-redis/kvraft"
@@ -43,16 +41,16 @@ func main() {
 
 	switch kind {
 	case "server":
-		go func() {
-			// 启动一个 http server，注意 pprof 相关的 handler 已经自动注册过了
-			portstring := strings.Split(strings.Split(addressAndPort, " ")[peerId], ":")[1]
-			portNum, _ := strconv.Atoi(portstring)
-			fmt.Println("pprof port", strconv.Itoa(portNum+1000))
-			if err := http.ListenAndServe(":"+strconv.Itoa(portNum+1000), nil); err != nil {
-				log.Fatal(err)
-			}
-			os.Exit(0)
-		}()
+		// go func() {
+		// 	// 启动一个 http server，注意 pprof 相关的 handler 已经自动注册过了
+		// 	portstring := strings.Split(strings.Split(addressAndPort, " ")[peerId], ":")[1]
+		// 	portNum, _ := strconv.Atoi(portstring)
+		// 	fmt.Println("pprof port", strconv.Itoa(portNum+1000))
+		// 	if err := http.ListenAndServe(":"+strconv.Itoa(portNum+1000), nil); err != nil {
+		// 		log.Fatal(err)
+		// 	}
+		// 	os.Exit(0)
+		// }()
 		kvraft.StartKVServer(addressAndPortArray, peerId, raft.MakePersister(), 10000)
 		for {
 			time.Sleep(60 * time.Second)
@@ -89,7 +87,6 @@ func main() {
 
 	default:
 		fmt.Println("error kind")
-
 	}
 
 }

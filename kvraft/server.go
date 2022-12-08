@@ -2,12 +2,14 @@ package kvraft
 
 import (
 	"bytes"
+	"encoding/gob"
 	"net/rpc"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"tomato-redis/labgob"
+	// "tomato-redis/labgob"
+	// "tomato-redis/labgob"
 	"tomato-redis/raft"
 )
 
@@ -78,15 +80,15 @@ func StartKVServer(servers []string, me int, persister *raft.Persister, maxrafts
 	// call labgob.Register on structures you want
 	// Go's RPC library to marshall/unmarshall.
 	DPrintf("KVServer.me=%d servers ", me)
-	labgob.Register(Op{})
-	labgob.Register(GetArgs{})
-	labgob.Register(GetReply{})
-	labgob.Register(PutAppendArgs{})
-	labgob.Register(PutAppendReply{})
-	labgob.Register(raft.AppendEntriesArgs{})
-	labgob.Register(raft.AppendEntriesReply{})
-	labgob.Register(raft.RequestVoteArgs{})
-	labgob.Register(raft.RequestVoteReply{})
+	gob.Register(Op{})
+	gob.Register(GetArgs{})
+	gob.Register(GetReply{})
+	gob.Register(PutAppendArgs{})
+	gob.Register(PutAppendReply{})
+	gob.Register(raft.AppendEntriesArgs{})
+	gob.Register(raft.AppendEntriesReply{})
+	gob.Register(raft.RequestVoteArgs{})
+	gob.Register(raft.RequestVoteReply{})
 	kv := new(KVServer)
 	kv.mu.Lock()
 	kv.me = me
@@ -309,7 +311,7 @@ func (kv *KVServer) judgePersiterSize(index int, maxraftstate int) {
 		DPrintf("KVServer.me=%d judgePersiterSize   RaftStateSize %v",
 			kv.me, kv.rf.Persister.RaftStateSize())
 		w := new(bytes.Buffer)
-		e := labgob.NewEncoder(w)
+		e := gob.NewEncoder(w)
 		stateMap := kv.stateMap
 		lastRequestIndex := kv.LastRequestIndex
 		e.Encode(stateMap)
@@ -323,7 +325,7 @@ func (kv *KVServer) judgePersiterSize(index int, maxraftstate int) {
 
 func (kv *KVServer) ingestSnap(snapshot []byte) {
 	r := bytes.NewBuffer(snapshot)
-	d := labgob.NewDecoder(r)
+	d := gob.NewDecoder(r)
 	stateMap := make(map[string]string)
 	lastRequestIndex := make(map[int]int)
 	d.Decode(&stateMap)

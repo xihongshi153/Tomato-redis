@@ -151,7 +151,6 @@ END:
 		}
 		DPrintf("clerk.Index=%d Repeat PutAppend args %v",
 			ck.ClerkIndex, args)
-
 	}
 	DPrintf("clerk.Index=%d success PutAppend args %v",
 		ck.ClerkIndex, args)

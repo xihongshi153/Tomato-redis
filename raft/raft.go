@@ -21,6 +21,7 @@ import (
 	//	"bytes"
 
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net"
@@ -32,8 +33,9 @@ import (
 	"time"
 
 	//	"6.824/labgob"
-	"tomato-redis/labgob"
+	// "tomato-redis/labgob"
 	// "6.824/labrpc"
+
 	"tomato-redis/myrpc"
 )
 
@@ -210,7 +212,7 @@ func (rf *Raft) persist() {
 	// Your code here (2C).
 	// Example:
 	w := new(bytes.Buffer)
-	e := labgob.NewEncoder(w)
+	e := gob.NewEncoder(w)
 	e.Encode(rf.CurrentTerm)
 	e.Encode(rf.VotedFor)
 	e.Encode(rf.Log)
@@ -232,7 +234,7 @@ func (rf *Raft) readPersist(data []byte) {
 	// Example:
 	DPrintf("raft.me=%d readPersist", rf.me)
 	r := bytes.NewBuffer(data)
-	d := labgob.NewDecoder(r)
+	d := gob.NewDecoder(r)
 	var Log []Log
 	var CurrentTerm int
 	var VotedFor int
