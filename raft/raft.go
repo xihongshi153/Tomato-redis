@@ -33,10 +33,11 @@ import (
 	"time"
 
 	//	"6.824/labgob"
-	// "tomato-redis/labgob"
-	// "6.824/labrpc"
 
 	"tomato-redis/myrpc"
+	// "tomato-redis/myrpc"
+	// "6.824/labrpc"
+	// "tomato-redis/myrpc"
 )
 
 var termTime time.Duration = time.Second / 2
